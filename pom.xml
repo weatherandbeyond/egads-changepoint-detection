@@ -7,7 +7,7 @@
   
   <name>EGADS Anomaly Detection System</name>
   <description>EGADS system, consumes time series and outputs anomalies.</description>
-  <version>0.4.6-SNAPSHOT</version>
+  <version>changepoint-detection-0.4.6</version>
   
   <organization>
     <name>Yahoo Inc.</name>
