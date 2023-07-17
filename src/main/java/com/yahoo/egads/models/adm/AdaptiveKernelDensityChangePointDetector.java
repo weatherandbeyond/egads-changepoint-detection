@@ -69,6 +69,9 @@ public class AdaptiveKernelDensityChangePointDetector extends AnomalyDetectionAb
     protected int postWindowSize = 48;
     // confidence level
     protected float confidence = 0.8F;
+    // use the post-window-average-value as actual value
+    protected Boolean usePostWindowAverageAsActualValue = false;
+
     // Model name.
     private String modelName = "AdaptiveKernelDensityChangePointDetector";
 
@@ -93,6 +96,13 @@ public class AdaptiveKernelDensityChangePointDetector extends AnomalyDetectionAb
         } else {
             this.confidence = new Float(config.getProperty("CONFIDENCE"));
         }
+
+        if (config.getProperty("USE_POST_WINDOW_AVERAGE_AS_ACTUAL_VALUE") == null) {
+            this.usePostWindowAverageAsActualValue = false;
+        } else {
+            this.usePostWindowAverageAsActualValue = new Boolean(config.getProperty("USE_POST_WINDOW_AVERAGE_AS_ACTUAL_VALUE"));
+        }
+
     }
 
     @Override
@@ -183,8 +193,19 @@ public class AdaptiveKernelDensityChangePointDetector extends AnomalyDetectionAb
         } else {
             for (int index : changePoints) {
                 if (isDetectionWindowPoint(maxHrsAgo, windowStart, observedSeries.get(index).time, observedSeries.get(0).time)) {
+                    float actualValue = observedSeries.get(index).value;
+                    if (this.usePostWindowAverageAsActualValue) {
+                        actualValue = 0.0f;
+                        int nValues = 0;
+                        for (int i = index; i < observedSeries.size(); i++ ) {
+                            actualValue += observedSeries.get(i).value;
+                            nValues ++;
+                        }
+                        actualValue = actualValue / (float) nValues;
+                    }
+
                     result.add(new Interval(observedSeries.get(index).time, index, new Float[] {score[index]},
-                                    new Float[] {level[index]}, observedSeries.get(index).value,
+                                    new Float[] {level[index]}, actualValue,
                                     expectedSeries.get(index).value));
                 }
             }
